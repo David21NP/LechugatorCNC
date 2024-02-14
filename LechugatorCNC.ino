@@ -1,6 +1,5 @@
-#include <TeensyStep.h>
-
 #include <elapsedMillis.h>
+#include "TeensyStep.h"
 
 // #define LED_BUILTIN PA_5
 HardwareSerial Serial1(PA_10, PA_9); // PA_10:RX - PA_9:TX
@@ -29,13 +28,13 @@ Stepper MOTOR_X1(Mot_Pull_X1, Mot_Dir_X1);
 
 // VELOCIDAD DEL PULSO
 StepControl controller_1(10U);
-StepControl controller_2(10U);
-StepControl controller_3(10U);
+StepControl controller_2(20U);
+
 
 // VELOCIDAD DE MOVIMIENTO DEL EJE Y
 int Vel_Y = 9000;
 int Ace_Y = 100000;
-int Pos_Y = ((200 * 8) * 35); // 35.3 DISTANCIA TOTAL
+int Pos_Y = (48000); // (200 * 8)*35.3 DISTANCIA TOTAL
 
 // VELOCIDAD DE MOVIMIENTO DEL EJE Z
 int Vel_Z = 11000;
@@ -156,37 +155,47 @@ void loop()
         digitalWrite(Mot_En_X1, HIGH);
     }
 
-    if (MOTOR_Y1.getPosition() > -19500)
+    // Posicion Mima del eje x 
+     if (MOTOR_X1.getPosition() < 0)
+    {
+        controller_1.emergencyStop();
+        delay(10);
+        MOTOR_X1.getPosition();
+        digitalWrite(Mot_En_X1, HIGH);
+    }
+    
+    // Posicion Maxima del eje Y 
+    if (MOTOR_Y1.getPosition() < -49000)
     {
         controller_1.emergencyStop();
         delay(10);
         MOTOR_Y1.getPosition();
-        digitalWrite(Mot_En_Y1, HIGH);
-    }
-
-
-    if (MOTOR_Y2.getPosition() > 19500)
-    {
-        controller_2.emergencyStop();
-        delay(10);
         MOTOR_Y2.getPosition();
+        digitalWrite(Mot_En_Y1, HIGH);
         digitalWrite(Mot_En_Y2, HIGH);
     }
 
-
+    // Posicion Maxima del eje Y 
+    if (MOTOR_Y1.getPosition() > 0)
+    {
+        controller_1.emergencyStop();
+        delay(10);
+        MOTOR_Y1.getPosition();
+        MOTOR_Y2.getPosition();
+        digitalWrite(Mot_En_Y1, HIGH);
+        digitalWrite(Mot_En_Y2, HIGH);
+    }
 
 
     // Apagar los Motores cuando no se esten moviendo
     if (!controller_1.isRunning())
     {
-        digitalWrite(Mot_En_X1, HIGH);
-        digitalWrite(Mot_En_Y1, HIGH);
-        // digitalWrite(Mot_En_X1, HIGH);
+        digitalWrite(Mot_En_X1, HIGH); 
     }
-    if (!controller_2.isRunning())
+    if (!controller_1.isRunning())
     {
+        digitalWrite(Mot_En_Y1, HIGH);
         digitalWrite(Mot_En_Y2, HIGH);
-        // digitalWrite(Mot_En_X1, HIGH);
     }
 
     switch (Estado)
@@ -223,15 +232,11 @@ void loop()
 
     case 'R':
         Z_ARRIBA();
-        delay(23000);
-        STOP_MOTORES();
         Estado = 0;
         break;
 
     case 'F':
         Z_ABAJO();
-        delay(23000);
-        STOP_MOTORES();
         Estado = 0;
         break;
 
@@ -253,120 +258,75 @@ void loop()
 
 void Y_ADELANTE()
 {
-    // MOBER MOTOR Y1 PARA DELANTE
-    if (!controller_1.isRunning())
-    {
-        digitalWrite(Mot_En_Y1, LOW);
-        MOTOR_Y1.setTargetRel(Pos_Y);
-        controller_1.moveAsync(MOTOR_Y1);
-        MOTOR_Y1.getPosition();
-        Serial.println("MOTOR Y1 ADELANTE");
-    }
-    // MOBER MOTOR Y2 para delante
-    if (!controller_2.isRunning())
-    {
-        digitalWrite(Mot_En_Y2, LOW);
-        MOTOR_Y2.setTargetRel(-Pos_Y);
-        controller_2.moveAsync(MOTOR_Y2);
-        MOTOR_Y2.getPosition();
-        Serial.println("MOTOR Y2 ADELANTE");
-    }
+    digitalWrite(Mot_En_Y1, LOW);   
+    digitalWrite(Mot_En_Y2, LOW);
+    MOTOR_Y1.setTargetRel(Pos_Y);
+    MOTOR_Y2.setTargetRel(-Pos_Y);
+    controller_1.moveAsync(MOTOR_Y1, MOTOR_Y2);
+    MOTOR_Y1.getPosition();
+    MOTOR_Y2.getPosition();
+    Serial.println("MOTOR Y1 Y2 ATRAS");
 }
 
 void Y_ATRAS()
 {
-    // MOBER MOTOR 1 DEL LADO IZQUERDO FINAL
-    if (!controller_1.isRunning()) // skip move command if motor is running already
-    {
-        digitalWrite(Mot_En_Y1, LOW);
-        MOTOR_Y1.setTargetRel(-Pos_Y);
-        controller_1.moveAsync(MOTOR_Y1);
-        MOTOR_Y1.getPosition();
-        Serial.println("MOTOR Y1 ATRAS");
-    }
-    // MOBER MOTOR 2 DEL LADO IZQUERDO FINAL
-    if (!controller_2.isRunning()) // skip move command if motor is running already
-    {
-        digitalWrite(Mot_En_Y2, LOW);
-        MOTOR_Y2.setTargetRel(Pos_Y);
-        controller_2.moveAsync(MOTOR_Y2);
-        MOTOR_Y2.getPosition();
-        Serial.println("MOTOR Y2 ATRAS");
-    }
+    digitalWrite(Mot_En_Y1, LOW);   
+    digitalWrite(Mot_En_Y2, LOW);
+    MOTOR_Y1.setTargetRel(-Pos_Y);
+    MOTOR_Y2.setTargetRel(Pos_Y);
+    controller_1.moveAsync(MOTOR_Y1, MOTOR_Y2);
+    MOTOR_Y1.getPosition();
+    MOTOR_Y2.getPosition();
+    Serial.println("MOTOR Y1 Y2 ATRAS");
 }
 
 void Y_Home(){
     
         digitalWrite(Mot_En_Y1, LOW);
-        MOTOR_Y1.setTargetRel(Pos_Y*10);
-        controller_1.moveAsync(MOTOR_Y1);
-        MOTOR_Y1.setPosition(0);
-        Serial.println("Para Y1");
-     
         digitalWrite(Mot_En_Y2, LOW);
-        MOTOR_Y2.setTargetRel(-Pos_Y*10);
-        controller_2.moveAsync(MOTOR_Y2);
+        MOTOR_Y1.setTargetRel(Pos_Y*1000);
+        MOTOR_Y2.setTargetRel(-Pos_Y*1000);
+        controller_1.moveAsync(MOTOR_Y1,MOTOR_Y2);
+        MOTOR_Y1.setPosition(0);
         MOTOR_Y2.setPosition(0);
-        Serial.println("Para Y2 ");
+        Serial.println("Para Y1");
+        
+  
 
-    while (!digitalRead(ENSTOP_Y1));
-    
+    while (!digitalRead(ENSTOP_Y2) && !digitalRead(ENSTOP_Y1));
     controller_1.emergencyStop();
     delay(10);
     digitalWrite(Mot_En_Y1, HIGH);
-    Serial.println("Parar Y1");
-
-    while (!digitalRead(ENSTOP_Y2));
-    controller_2.emergencyStop();
-    delay(10);
     digitalWrite(Mot_En_Y2, HIGH);
+    MOTOR_Y1.setPosition(0);
     MOTOR_Y2.setPosition(0);
     Serial.println("Parar Y2");
-  
-        
-    
 
 }
 
 void Z_ARRIBA()
 {
-    // MOBER MOTOR Y1 PARA DELANTE
-    if (!controller_1.isRunning()) // skip move command if motor is running already
-    {
-        digitalWrite(Mot_En_Z1, LOW);
-        MOTOR_Z1.setTargetRel(-Pos_Z);
-        controller_1.moveAsync(MOTOR_Z1);
-        Serial.println("MOTOR Z1 ARRIBA");
-    }
-    // MOBER MOTOR Y2 para delante
-    if (!controller_2.isRunning()) // skip move command if motor is running already
-    {
-        digitalWrite(Mot_En_Z2, LOW);
-        MOTOR_Z2.setTargetRel(-Pos_Z);
-        controller_2.moveAsync(MOTOR_Z2);
-        Serial.println("MOTOR Z2 ARRIBA");
-    }
+    digitalWrite(Mot_En_Z1, LOW);   
+    digitalWrite(Mot_En_Z2, LOW);
+    MOTOR_Z1.setTargetRel(-Pos_Z);
+    MOTOR_Z2.setTargetRel(-Pos_Z);
+    controller_2.moveAsync(MOTOR_Z1, MOTOR_Z2);
+    MOTOR_Z1.getPosition();
+    MOTOR_Z2.getPosition();
+    Serial.println("MOTOR Z1 Z2 ATRAS");
 }
 
 void Z_ABAJO()
 {
 
-    // MOBER MOTOR Y1 PARA DELANTE
-    if (!controller_1.isRunning()) // skip move command if motor is running already
-    {
-        digitalWrite(Mot_En_Z1, LOW);
-        MOTOR_Z1.setTargetRel(Pos_Z);
-        controller_1.moveAsync(MOTOR_Z1);
-        Serial.println("MOTOR Z1 ABAJO");
-    }
-    // MOBER MOTOR Y2 para delante
-    if (!controller_2.isRunning()) // skip move command if motor is running already
-    {
-        digitalWrite(Mot_En_Z2, LOW);
-        MOTOR_Z2.setTargetRel(Pos_Z);
-        controller_2.moveAsync(MOTOR_Z2);
-        Serial.println("MOTOR Z2 ABAJO");
-    }
+    digitalWrite(Mot_En_Z1, LOW);   
+    digitalWrite(Mot_En_Z2, LOW);
+    MOTOR_Z1.setTargetRel(Pos_Z);
+    MOTOR_Z2.setTargetRel(Pos_Z);
+    controller_2.moveAsync(MOTOR_Z1, MOTOR_Z2);
+    MOTOR_Z1.getPosition();
+    MOTOR_Z2.getPosition();
+    Serial.println("MOTOR Z1 Z2 ATRAS");
 }
 
 void X_Derecha()
@@ -440,3 +400,24 @@ void STOP_MOTORES()
 
     Serial.println("Detener motores");
 }
+
+// void Mover_Motores_Tiempo(){
+// // MOVER MOTOR Y1 PARA DELANTE
+//     if (!controller_1.isRunning())
+//     {
+//         digitalWrite(Mot_En_Y1, LOW);
+//         MOTOR_Y1.setTargetRel(Pos_Y);
+//         controller_1.moveAsync(MOTOR_Y1);
+//         MOTOR_Y1.getPosition();
+//         Serial.println("MOTOR Y1 ADELANTE");
+//     }
+//     // MOVER MOTOR Y2 para delante
+//     if (!controller_1.isRunning())
+//     {
+//         digitalWrite(Mot_En_Y2, LOW);
+//         MOTOR_Y2.setTargetRel(-Pos_Y);
+//         controller_1.moveAsync(MOTOR_Y2);
+//         MOTOR_Y2.getPosition();
+//         Serial.println("MOTOR Y2 ADELANTE");
+//     }
+// }
