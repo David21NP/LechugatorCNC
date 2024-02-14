@@ -1,0 +1,7 @@
+{
+    "configuration": "pnum=GENERIC_F411RETX,upload_method=swdMethod,xserial=generic,usb=none,xusb=FS,opt=osstd,dbg=enable_all,rtlib=nano",
+    "board": "STMicroelectronics:stm32:GenF4",
+    "output": "./build",
+    "sketch": "LechugatorCNC.ino",
+    "port": "COM7"
+}

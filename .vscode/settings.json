@@ -1,0 +1,32 @@
+{
+  "files.associations": {
+    ".env": "txt",
+    ".env.development": "txt",
+    ".env.production": "txt",
+    "algorithm": "cpp",
+    "array": "cpp",
+    "atomic": "cpp",
+    "deque": "cpp",
+    "functional": "cpp",
+    "iterator": "cpp",
+    "list": "cpp",
+    "memory": "cpp",
+    "ostream": "cpp",
+    "random": "cpp",
+    "vector": "cpp",
+    "xhash": "cpp",
+    "xlocale": "cpp",
+    "xlocnum": "cpp",
+    "xmemory": "cpp",
+    "xstring": "cpp",
+    "xutility": "cpp",
+    "*.tcc": "cpp",
+    "cmath": "cpp",
+    "string": "cpp",
+    "unordered_map": "cpp",
+    "string_view": "cpp",
+    "numeric": "cpp",
+    "streambuf": "cpp",
+    "initializer_list": "cpp"
+  }
+}
